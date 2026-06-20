@@ -33,13 +33,35 @@ export default function useTypingShooterGame(level) {
       setEnemies((items) => items.filter((item) => item.id !== enemy.id))
       setCombo(nextCombo)
       setCorrect((count) => count + 1)
-      setScore((points) => points + calculateScore(enemy.word, nextCombo))
+      setScore((points) => points + calculateScore(enemy.originalWord || enemy.word, nextCombo))
     } else {
       setCombo(0)
       setWrong((count) => count + 1)
       setScore((points) => Math.max(0, points + calculateScore(text, 0, true)))
     }
     setInput('')
+  }
+
+  function hitEnemyChar(enemyId) {
+    const enemy = enemies.find((item) => item.id === enemyId)
+    if (!enemy || !running) return
+    const nextWord = enemy.word.slice(1)
+    if (nextWord) {
+      setEnemies((items) => items.map((item) => item.id === enemyId ? { ...item, word: nextWord } : item))
+      return
+    }
+    const nextCombo = combo + 1
+    setEnemies((items) => items.filter((item) => item.id !== enemyId))
+    setCombo(nextCombo)
+    setCorrect((count) => count + 1)
+    setScore((points) => points + calculateScore(enemy.originalWord || enemy.word, nextCombo))
+  }
+
+  function missChar(char) {
+    if (!char || !running) return
+    setCombo(0)
+    setWrong((count) => count + 1)
+    setScore((points) => Math.max(0, points + calculateScore(char, 0, true)))
   }
 
   useEffect(() => {
@@ -50,7 +72,10 @@ export default function useTypingShooterGame(level) {
 
   useEffect(() => {
     if (!running) return
-    const spawnEnemy = () => setEnemies((items) => [...items.slice(-7), { id: crypto.randomUUID(), word: pickWord(wordPools[level]), x: Math.random() * 80 + 5 }])
+    const spawnEnemy = () => {
+      const word = pickWord(wordPools[level])
+      setEnemies((items) => [...items.slice(-7), { id: crypto.randomUUID(), word, originalWord: word, x: Math.random() * 80 + 5 }])
+    }
     spawnEnemy()
     const spawner = setInterval(spawnEnemy, config.spawnMs)
     return () => clearInterval(spawner)
@@ -74,5 +99,5 @@ export default function useTypingShooterGame(level) {
     wpm: calculateWpm(correct, config.duration - timeLeft || 1),
   }), [level, score, correct, wrong, timeLeft, config.duration])
 
-  return { config, running, timeLeft, input, setInput, enemies, score, correct, wrong, combo, stats, start, submit }
+  return { config, running, timeLeft, input, setInput, enemies, score, correct, wrong, combo, stats, start, submit, hitEnemyChar, missChar }
 }

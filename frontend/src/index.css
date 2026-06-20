@@ -46,8 +46,10 @@ input:focus, textarea:focus, select:focus { border-color: #22d3ee; box-shadow: 0
 .arena { position: relative; min-height: 440px; overflow: hidden; background: linear-gradient(180deg, rgba(8, 47, 73, .5), rgba(15, 23, 42, .95)); }
 .hud { display: flex; gap: 14px; flex-wrap: wrap; justify-content: space-between; color: #67e8f9; }
 .enemy { position: absolute; min-width: 84px; padding: 10px 14px; border-radius: 999px; text-align: center; color: #fff; background: linear-gradient(135deg, #7c3aed, #db2777); box-shadow: 0 0 26px rgba(124, 58, 237, .65); animation: drift 5s linear infinite; }
+.bullet { position: absolute; left: 50%; top: calc(100% - 48px); width: 12px; height: 12px; border-radius: 50%; background: #67e8f9; box-shadow: 0 0 18px #22d3ee, 0 0 32px #a78bfa; pointer-events: none; animation: shoot .42s ease-out forwards; }
 .game-input { position: absolute; left: 50%; bottom: 24px; width: min(520px, calc(100% - 32px)); transform: translateX(-50%); text-align: center; font-size: 1.25rem; }
 @keyframes drift { from { transform: translateY(-20px); } to { transform: translateY(320px); } }
+@keyframes shoot { to { left: var(--target-x); top: var(--target-y); transform: scale(.45); opacity: 0; } }
 
 .table-wrap { overflow: auto; border-radius: 18px; border: 1px solid rgba(148, 163, 184, .2); }
 table { width: 100%; border-collapse: collapse; background: rgba(15, 23, 42, .62); }

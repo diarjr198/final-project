@@ -10,6 +10,7 @@ export default function Game() {
   const [level, setLevel] = useState('easy')
   const [saved, setSaved] = useState('')
   const [autosaved, setAutosaved] = useState(false)
+  const [bullets, setBullets] = useState([])
   const inputRef = useRef(null)
   const arenaRef = useRef(null)
   const game = useTypingShooterGame(level)
@@ -22,6 +23,7 @@ export default function Game() {
   function start() {
     setSaved('')
     setAutosaved(false)
+    setBullets([])
     game.start()
     setTimeout(centerArena, 0)
   }
@@ -37,6 +39,25 @@ export default function Game() {
     setSaved('Skor tersimpan otomatis.')
     setAutosaved(true)
   }, [user, game.stats, refreshProfile])
+
+  function fireBullet(target) {
+    const id = crypto.randomUUID()
+    setBullets((items) => [...items, { id, x: target.x, y: target.y }])
+    setTimeout(() => setBullets((items) => items.filter((item) => item.id !== id)), 420)
+  }
+
+  function type(value) {
+    const char = value.at(-1)?.toLowerCase()
+    const target = game.enemies.find((enemy) => enemy.word[0] === char)
+    if (game.running && char && target) {
+      fireBullet({ x: target.x, y: 18 + game.enemies.indexOf(target) * 9 })
+      game.hitEnemyChar(target.id)
+    } else {
+      game.missChar(char)
+    }
+    game.setInput('')
+    centerArena()
+  }
 
   function submit(event) {
     event.preventDefault()
@@ -60,7 +81,8 @@ export default function Game() {
       <Card className="arena" ref={arenaRef}>
         <div className="hud"><span>Time: {game.timeLeft}s</span><span>Score: {game.score}</span><span>Combo: {game.combo}</span><span>Accuracy: {game.stats.accuracy}%</span></div>
         {game.running && game.enemies.map((enemy, index) => <div key={enemy.id} className="enemy" style={{ left: `${enemy.x}%`, top: `${18 + index * 9}%` }}>{enemy.word}</div>)}
-        <form onSubmit={submit}><input ref={inputRef} className="game-input" autoFocus value={game.input} onFocus={centerArena} onChange={(e) => { game.setInput(e.target.value); centerArena() }} placeholder="Ketik kata musuh lalu Enter" /></form>
+        {bullets.map((bullet) => <span key={bullet.id} className="bullet" style={{ '--target-x': `${bullet.x}%`, '--target-y': `${bullet.y}%` }} />)}
+        {game.running && <form onSubmit={submit}><input ref={inputRef} className="game-input" autoFocus value={game.input} onFocus={centerArena} onChange={(e) => type(e.target.value)} placeholder="Ketik huruf target" /></form>}
       </Card>
       {saved && <p className="muted">{saved}</p>}
     </div>
